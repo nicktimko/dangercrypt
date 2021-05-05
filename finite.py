@@ -2,6 +2,9 @@ import collections
 import math
 
 
+T_POLY = list[int]
+
+
 def get_prime_factors(number):
     # https://paulrohan.medium.com/111de56541f
 
@@ -118,10 +121,11 @@ class Field:
             if mod_poly is None:
                 try:
                     self.mod_poly = POLY_MIN_WEIGHT[self.prime][self.power]
-                except IndexError:
-                    raise Exception(
-                        f"don't know a primitive polynomial for GF({self.prime}{int2sup(self.power)})"
-                    )
+                except KeyError:
+                    self.mod_poly = None
+                    # raise Exception(
+                    #     f"don't know a primitive polynomial for GF({self.prime}{int2sup(self.power)})"
+                    # )
             else:
                 self.mod_poly = mod_poly
 
@@ -226,18 +230,18 @@ class Element:
         return self.__class__(self.field, remainder)
 
 
-def normalize(poly):
+def normalize(poly: T_POLY) -> T_POLY:
     while poly and poly[-1] == 0:
         poly.pop()
     if poly == []:
         poly.append(0)
 
 
-def pad(poly, order):
+def pad(poly: T_POLY, order: int) -> T_POLY:
     return poly + [0] * (order - len(poly))
 
 
-def poly_divmod(num: list[int], den: list[int]) -> tuple[list[int], list[int]]:
+def poly_divmod(num: T_POLY, den: T_POLY) -> tuple[T_POLY, T_POLY]:
     """
     Polynomial long division
 

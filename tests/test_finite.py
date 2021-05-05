@@ -9,6 +9,11 @@ import finite
 
 
 SMALL_FIELDS = [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27]
+BIGGER_FIELDS = [256, 10007, 65536, 100003]
+
+MAX_ITER_N = 5000
+MAX_ITER_N2 = int(MAX_ITER_N ** (1/2))
+MAX_ITER_N3 = int(MAX_ITER_N ** (1/3))
 
 
 @pytest.mark.parametrize(
@@ -66,38 +71,40 @@ def test_element_generation():
     assert el.coeff == [1, 2]
 
 
-@pytest.mark.parametrize("n", SMALL_FIELDS)
+@pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 def test_element_roundtrip(n):
     f = finite.Field(n)
-    for m in range(n):
+    for m in range(min(n, MAX_ITER_N)):
         el = f.element(m)
         assert int(el) == m
 
 
-@pytest.mark.parametrize("n", SMALL_FIELDS)
+@pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 def test_characteristic(n):
     f = finite.Field(n)
-    for m in range(n):
+    any_test = False
+    for m in range(min(n, int(MAX_ITER_N / f.prime) + 1)):
+        any_test = True
         el = f.element(m)
         assert sum(el for _ in range(f.prime)) == f.element(0)
+    assert any_test
 
 
-@pytest.mark.parametrize("n", SMALL_FIELDS)
+@pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 @pytest.mark.parametrize("func", [operator.add, operator.sub])
 def test_add_identity(n, func):
     f = finite.Field(n)
     additive_identity = f.element(0)
-    for m in range(n):
+    for m in range(min(n, MAX_ITER_N)):
         el = f.element(m)
         assert func(el, additive_identity) == el
 
 
-
-@pytest.mark.parametrize("n", SMALL_FIELDS)
+@pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 def test_add_inverse(n):
     f = finite.Field(n)
     additive_identity = f.element(0)
-    for m in range(n):
+    for m in range(min(n, MAX_ITER_N)):
         el = f.element(m)
         assert el + (-el) == additive_identity
 
@@ -133,11 +140,11 @@ def test_associative(n, func):
         assert func(func(a, b), c) == func(a, func(b, c)), (a, b, c)
 
 
-@pytest.mark.parametrize("n", SMALL_FIELDS)
+@pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 def test_sub(n):
     f = finite.Field(n)
     additive_identity = f.element(0)
-    for m in range(n):
+    for m in range(min(n, MAX_ITER_N)):
         el = f.element(m)
         assert el - el == additive_identity
 
@@ -154,15 +161,19 @@ def test_mul_identity(n):
         assert el * multiplicitive_identity == el
 
 
-@pytest.mark.xfail(reason="dunno...")
-def test_aes_mul():
+def test_aes_examples():
+    """Examples from FIPS 197 (AES) section 4.2.1"""
     f = finite.Field(2**8)
     assert f.mod_poly == [1, 1, 0, 1, 1, 0, 0, 0, 1]
 
-    assert f.element(0x57) * f.element(0x01) == f.element(0x57)
-    assert f.element(0x57) * f.element(0x02) == f.element(0xAE)
-    assert f.element(0x57) * f.element(0x10) == f.element(0x07)
-    assert f.element(0x57) * f.element(0x13) == f.element(0xFE)
+    assert f.E(0x57) * f.E(0x01) == f.E(0x57)
+    assert f.E(0x57) * f.E(0x02) == f.E(0xAE)
+    assert f.E(0x57) * f.E(0x08) == f.E(0x8E)
+    assert f.E(0x57) * f.E(0x10) == f.E(0x07)
+    assert f.E(0x57) * f.E(0x13) == f.E(0xFE)
+
+    assert f.E(0x57) * (f.E(0x01) + f.E(0x02) + f.E(0x10)) == f.E(0xFE)
+    assert f.E(0x57) + f.E(0xAE) + f.E(0x07) == f.E(0xFE)
 
 
 @pytest.mark.parametrize("n", SMALL_FIELDS)
