@@ -7,13 +7,15 @@ import pytest
 
 import finite
 
+from tests.util import int_sampler
+
 
 SMALL_FIELDS = [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27]
 BIGGER_FIELDS = [256, 10007, 65536, 100003]
 
 MAX_ITER_N = 5000
-MAX_ITER_N2 = int(MAX_ITER_N ** (1/2))
-MAX_ITER_N3 = int(MAX_ITER_N ** (1/3))
+MAX_ITER_N2 = int(MAX_ITER_N ** (1 / 2))
+MAX_ITER_N3 = int(MAX_ITER_N ** (1 / 3))
 
 
 @pytest.mark.parametrize(
@@ -74,7 +76,7 @@ def test_element_generation():
 @pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 def test_element_roundtrip(n):
     f = finite.Field(n)
-    for m in range(min(n, MAX_ITER_N)):
+    for m in int_sampler(n):
         el = f.element(m)
         assert int(el) == m
 
@@ -82,12 +84,12 @@ def test_element_roundtrip(n):
 @pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
 def test_characteristic(n):
     f = finite.Field(n)
-    any_test = False
-    for m in range(min(n, int(MAX_ITER_N / f.prime) + 1)):
-        any_test = True
+    _sanity_run_check = False
+    for m in int_sampler(n, limit=int(MAX_ITER_N / f.prime) + 1):
+        _sanity_run_check = True
         el = f.element(m)
         assert sum(el for _ in range(f.prime)) == f.element(0)
-    assert any_test
+    assert _sanity_run_check
 
 
 @pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
@@ -95,7 +97,7 @@ def test_characteristic(n):
 def test_add_identity(n, func):
     f = finite.Field(n)
     additive_identity = f.element(0)
-    for m in range(min(n, MAX_ITER_N)):
+    for m in int_sampler(n):
         el = f.element(m)
         assert func(el, additive_identity) == el
 
@@ -104,7 +106,7 @@ def test_add_identity(n, func):
 def test_add_inverse(n):
     f = finite.Field(n)
     additive_identity = f.element(0)
-    for m in range(min(n, MAX_ITER_N)):
+    for m in int_sampler(n):
         el = f.element(m)
         assert el + (-el) == additive_identity
 
@@ -113,7 +115,7 @@ def test_add_inverse(n):
 @pytest.mark.parametrize("n", SMALL_FIELDS)
 def test_commutative(n, func):
     f = finite.Field(n)
-    for na, nb in itertools.product(range(n), range(n)):
+    for na, nb in int_sampler([n, n]):
         a = f.element(na)
         b = f.element(nb)
         assert func(a, b) == func(b, a), (a, b)
@@ -123,21 +125,27 @@ def test_commutative(n, func):
 @pytest.mark.parametrize("n", SMALL_FIELDS)
 def test_associative(n, func):
     f = finite.Field(n)
-    if n**3 > 1000:
-        rng = random.Random()
-        rng.seed(n)
-        def _gen():
-            yield rng.randrange(n), rng.randrange(n), rng.randrange(n)
-        gen = _gen()
-    else:
-        gen = itertools.product(range(n), range(n), range(n))
+    _op = "*" if func is operator.mul else "+"
 
-    for na, nb, nc in gen:
-        print(na, nb, nc)
+    for na, nb, nc in int_sampler([n, n, n], seed=n):
         a = f.element(na)
         b = f.element(nb)
         c = f.element(nc)
-        assert func(func(a, b), c) == func(a, func(b, c)), (a, b, c)
+        if func(func(a, b), c) != func(a, func(b, c)):
+            print(na, nb, nc)
+            ab = func(a, b)
+            bc = func(b, c)
+            ab_c = func(ab, c)
+            a_bc = func(a, bc)
+            print(f)
+            print(f.mod_poly)
+            print(f"a: {na} -> {a}")
+            print(f"b: {nb} -> {b}")
+            print(f"c: {nc} -> {c}")
+            print(f"{ab=}, {ab_c=}")
+            print(f"{bc=}, {a_bc=}")
+            _note = f"in {f}: ({na} {_op} {nb}) {_op} {nc} != {na} {_op} ({nb} {_op} {nc})"
+            pytest.fail(_note)
 
 
 @pytest.mark.parametrize("n", SMALL_FIELDS + BIGGER_FIELDS)
@@ -163,7 +171,7 @@ def test_mul_identity(n):
 
 def test_aes_examples():
     """Examples from FIPS 197 (AES) section 4.2.1"""
-    f = finite.Field(2**8)
+    f = finite.Field(2 ** 8)
     assert f.mod_poly == [1, 1, 0, 1, 1, 0, 0, 0, 1]
 
     assert f.E(0x57) * f.E(0x01) == f.E(0x57)
