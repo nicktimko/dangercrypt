@@ -3,28 +3,6 @@ import pytest
 import dangercrypt.xtra.math as xm
 
 
-@pytest.mark.parametrize(
-    "i, o",
-    [
-        ({"bytes_": [0], "byte_size": 8}, 0),
-        ({"bytes_": [0xFF], "byte_size": 8}, 255),
-        ({"bytes_": [0xFF, 0xFE], "byte_size": 8}, 0xFFFE),
-        ({"bytes_": [0xFF, 0xFE], "byte_size": 8, "endian": "big"}, 0xFFFE),
-        ({"bytes_": [0xFF, 0xFE], "byte_size": 8, "endian": "little"}, 0xFEFF),
-        ({"bytes_": [0xA, 0xB], "byte_size": 4, "endian": "big"}, 0xAB),
-        ({"bytes_": [0xA, 0xB], "byte_size": 4, "endian": "little"}, 0xBA),
-        ({"bytes_": [0b110, 0b101], "byte_size": 3, "endian": "big"}, 0b110101),
-    ],
-)
-def test_b2w(i, o):
-    assert xm.bytes_to_word(**i) == o
-
-
-def test_b2w_oversized():
-    with pytest.raises(ValueError, match="too wide"):
-        xm.bytes_to_word([0b1000], 3)
-
-
 def test_ffadd():
     # examples from section 4.1 (though they're the same...)
     assert xm.ffadd(0b01010111, 0b10000011) == 0b11010100

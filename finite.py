@@ -230,7 +230,8 @@ class Element:
         return self.__class__(self.field, remainder)
 
 
-def normalize(poly: T_POLY) -> T_POLY:
+def normalize(poly: T_POLY) -> None:
+    """Normalize (remove max order 0's) *poly* in-place."""
     while poly and poly[-1] == 0:
         poly.pop()
     if poly == []:
@@ -238,6 +239,7 @@ def normalize(poly: T_POLY) -> T_POLY:
 
 
 def pad(poly: T_POLY, order: int) -> T_POLY:
+    """Pad the *poly* out to *order*, return a new copy."""
     return poly + [0] * (order - len(poly))
 
 

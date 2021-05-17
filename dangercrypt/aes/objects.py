@@ -1,6 +1,7 @@
 import math
 
 from dangercrypt import xtra
+import finite
 
 
 AES_ROWS = 4
@@ -42,6 +43,6 @@ class State:
     @property
     def words(self):
         return list(
-            xtra.math.bytes_to_word(bb, self.byte_size)
+            xtra.bits.bytes_to_word(bb, self.byte_size)
             for bb in xtra.itertools.chunks(self.bytes, self.rows)
         )

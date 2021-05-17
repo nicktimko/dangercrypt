@@ -1,7 +1,3 @@
-import collections.abc
-import enum
-import operator
-import typing
 import warnings
 
 
@@ -16,39 +12,16 @@ KNOWN_IRREDUCIBLE_POLYS = [
 # fmt: on
 
 
-class Endian(enum.Enum):
-    big = "big"
-    little = "little"
-
-
-def bytes_to_word(
-    bytes_: collections.abc.Iterable[int],
-    byte_size: int,
-    *,
-    endian: typing.Union[Endian, str] = Endian.big,
-):
-    endian = Endian(endian)
-
-    if endian is Endian.little:
-        bytes_ = reversed(bytes_)
-
-    x = 0
-    for n, b in enumerate(bytes_):
-        if b >= 1 << byte_size:
-            raise ValueError(f"byte {b} at index {n} too wide")
-        x <<= byte_size
-        x += b
-
-    return x
-
-
 def ffadd(a, b):
+    """
+    GF(2**n) addition
+    """
     return a ^ b
 
 
 def ffmul(a, b, polynomial=0b1_0001_1011):
     """
-    "Russian peasant multiplication"
+    GF(2**n) multiplication via "Russian peasant multiplication"
 
     Adapted from https://en.wikipedia.org/wiki/Finite_field_arithmetic#C_programming_example
     """
