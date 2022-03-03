@@ -5,7 +5,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-python_version := 3.9
+python_version := 3.10
 venv_dir := .venv
 venv_python := ${venv_dir}/bin/python${python_version}
 

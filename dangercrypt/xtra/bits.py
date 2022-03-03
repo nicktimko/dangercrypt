@@ -3,7 +3,6 @@ Bit manipulation routines
 """
 import collections.abc
 import enum
-import typing
 
 
 class Bit(enum.IntEnum):
@@ -20,7 +19,7 @@ def bytes_to_word(
     bytes_: collections.abc.Iterable[int],
     byte_size: int,
     *,
-    endian: typing.Union[Endian, str] = Endian.big,
+    endian: Endian | str = Endian.big,
 ):
     """
     Convert arbitrarly-sized bytes to a word

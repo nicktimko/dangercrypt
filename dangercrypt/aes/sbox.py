@@ -25,7 +25,7 @@ shifts_int = 0b11110001
 
 
 def sub_byte(b: list[int], nb=8) -> list[int]:
-    pass
+    row = xb.byte_to_bits(xb.iror(shifts_int, nb), nb)
 
 
 # def sub_byte():

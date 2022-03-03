@@ -10,10 +10,10 @@ MAX_ITER_N = 5000
 
 
 def int_sampler(
-    ranges: typing.Union[int, range, list[typing.Union[int, range]]],
+    ranges: int | range | list[int | range],
     limit=MAX_ITER_N,
     seed=None,
-) -> collections.abc.Generator[typing.Union[int, tuple[int, ...]]]:
+) -> collections.abc.Generator[int | tuple[int, ...]]:
     """
     Return integer permutations from the provided *ranges*. If there are more
     permutations than *limit*, sampling is used with no replacement.
